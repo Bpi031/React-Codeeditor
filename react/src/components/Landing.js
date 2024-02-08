@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import CodeEditorWindow from "./CodeEditorWindow";
-import axios from "axios";
 import { classnames } from "../utils/general";
 import { languageOptions } from "../constants/languageOptions";
 
@@ -9,20 +8,16 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { defineTheme } from "../lib/defineTheme";
 import useKeyPress from "../hooks/useKeyPress";
-import Footer from "./Footer";
-import OutputWindow from "./OutputWindow";
 import CustomInput from "./CustomInput";
-import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
 import DisplayWindow from "./DisplayWindow";
+import { Pyodide } from "../components/pyodide";
 
-const javascriptDefault = `console.log("Hello, World!");`;
 
 const Landing = () => {
-  const [code, setCode] = useState(javascriptDefault);
+  const [code, setCode] = useState('');
   const [customInput, setCustomInput] = useState("");
-  const [outputDetails, setOutputDetails] = useState(null);
   const [processing, setProcessing] = useState(null);
   const [theme, setTheme] = useState("cobalt");
   const [language, setLanguage] = useState(languageOptions[0]);
@@ -30,7 +25,9 @@ const Landing = () => {
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
 
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState('');
+
+  const pyodide = Pyodide.getInstance();
 
   const onSelectChange = (sl) => {
     console.log("selected Option...", sl);
@@ -76,10 +73,16 @@ const Landing = () => {
     .catch((error) => {
         console.error('Error:', error);
     });
+};
 
-    
-    
-}
+  //execute python code
+  const runPython = async () => {
+      pyodide.setOutput((text) => {
+        setOutput({ sentence: text });
+      });
+      console.log("clicked", code);
+      pyodide.run(code);
+    };
 
   function handleThemeChange(th) {
     const theme = th;
@@ -97,28 +100,6 @@ const Landing = () => {
     );
   }, []);
 
-  const showSuccessToast = (msg) => {
-    toast.success(msg || `Compiled Successfully!`, {
-      position: "top-right",
-      autoClose: 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  };
-  const showErrorToast = (msg, timer) => {
-    toast.error(msg || `Something went wrong! Please try again.`, {
-      position: "top-right",
-      autoClose: timer ? timer : 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  };
 
   return (
     <>
@@ -190,18 +171,26 @@ const Landing = () => {
               setCustomInput={setCustomInput}
             />
           </div>
+          <br />
           <DisplayWindow outputDetails={output} />
             <div>
               <button 
                 onClick={handleClick} 
                 className={classnames(
                 "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
+                !customInput ? "opacity-50" : ""
+              )}>{"Generate"}</button>
+            </div>
+            <div>
+              <button 
+                onClick={runPython} 
+                className={classnames(
+                "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
                 !code ? "opacity-50" : ""
-              )}>{processing ? "Processing..." : "Compile and Execute"}</button>
+              )}>{"RunCode"}</button>
             </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import Editor from "@monaco-editor/react";
 
@@ -19,7 +19,7 @@ const CodeEditorWindow = ({ onChange, language, code, theme, output }) => {
         language={language || "javascript"}
         value={output.ans}
         theme={theme}
-        defaultValue="// some comment"
+        defaultValue="## Write down your first code with GPT"
         onChange={handleEditorChange}
       />
     </div>
